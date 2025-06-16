@@ -72,14 +72,19 @@ export async function POST(req: NextRequest) {
     let notes
     try {
         notes = JSON.parse(cleaned)
-    } catch (err) {
+    } catch {
         console.error("❌ Failed to parse cleaned OpenAI response:", cleaned)
         return NextResponse.json({ error: "Failed to parse OpenAI response as JSON" }, { status: 500 })
     }
 
     return NextResponse.json(notes)
-    } catch (err: any) {
-        console.error("❌ Unexpected error:", err)
-        return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 })
+    } catch (err: unknown) {
+        console.error("❌ Unexpected error:", err);
+
+        if (err instanceof Error) {
+            return NextResponse.json({ error: err.message }, { status: 500 });
+        }
+
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

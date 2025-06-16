@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DiffModal from "./components/DiffModal";
 
 interface DiffItem {
@@ -41,8 +41,12 @@ export default function Home() {
       setCurrentPage(data.currentPage);
       setNextPage(data.nextPage);
       setInitialFetchDone(true);
-    } catch (err: any) {
-      setError(err.message || "Failed to load diffs");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to load diffs");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +73,7 @@ export default function Home() {
       });
       const data = await res.json();
       setNotes(data);
-    } catch (e) {
+    } catch {
       setNotes({ developer: "Error generating notes", marketing: "" });
     } finally {
       setGenerating(false);
