@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server"
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY!;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY!
 
 export async function POST(req: NextRequest) {
     try {
-    const { diff } = await req.json();
+    const { diff } = await req.json()
 
     if (!diff || typeof diff !== "string") {
-        console.error("❌ Missing or invalid 'diff' in request body");
-        return NextResponse.json({ error: "Missing or invalid 'diff'" }, { status: 400 });
+        console.error("❌ Missing or invalid 'diff' in request body")
+        return NextResponse.json({ error: "Missing or invalid 'diff'" }, { status: 400 })
     }
 
     const prompt = `
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         \`\`\`diff
         ${diff}
         \`\`\`
-    `;
+    `
 
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -47,20 +47,18 @@ export async function POST(req: NextRequest) {
         }),
     })
 
-    const json = await response.json();
+    const json = await response.json()
 
     if (!response.ok) {
-        console.error("❌ OpenAI API error:", json);
-        return NextResponse.json({ error: json.error?.message || "OpenAI error" }, { status: 500 });
+        console.error("❌ OpenAI API error:", json)
+        return NextResponse.json({ error: json.error?.message || "OpenAI error" }, { status: 500 })
     }
 
-    const content = json.choices?.[0]?.message?.content;
+    const content = json.choices?.[0]?.message?.content
     if (!content) {
-        console.error("❌ No content in OpenAI response:", json);
-        return NextResponse.json({ error: "No content returned from OpenAI" }, { status: 500 });
+        console.error("❌ No content in OpenAI response:", json)
+        return NextResponse.json({ error: "No content returned from OpenAI" }, { status: 500 })
     }
-
-    console.log("OpenAI response content:", content);
 
     // Clean triple-backtick markdown formatting
     const cleaned = content
@@ -69,19 +67,19 @@ export async function POST(req: NextRequest) {
         .replace(/^json\\n?/i, "")     // remove starting json if not backticked
         .replace(/^```/, "")           // remove lone ```
         .replace(/```$/, "")           // remove ending ```
-        .trim();
+        .trim()
 
-    let notes;
+    let notes
     try {
-        notes = JSON.parse(cleaned);
+        notes = JSON.parse(cleaned)
     } catch (err) {
-        console.error("❌ Failed to parse cleaned OpenAI response:", cleaned);
-        return NextResponse.json({ error: "Failed to parse OpenAI response as JSON" }, { status: 500 });
+        console.error("❌ Failed to parse cleaned OpenAI response:", cleaned)
+        return NextResponse.json({ error: "Failed to parse OpenAI response as JSON" }, { status: 500 })
     }
 
-    return NextResponse.json(notes);
+    return NextResponse.json(notes)
     } catch (err: any) {
-        console.error("❌ Unexpected error:", err);
-        return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
+        console.error("❌ Unexpected error:", err)
+        return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 })
     }
 }
